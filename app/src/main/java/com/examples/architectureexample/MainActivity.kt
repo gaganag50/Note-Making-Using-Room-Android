@@ -1,6 +1,5 @@
 package com.examples.architectureexample
 
-import android.R.attr
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -38,7 +37,7 @@ class MainActivity : AppCompatActivity() {
 
         noteViewModel = ViewModelProvider(this).get(NoteViewModel::class.java)
         noteViewModel?.allNotes?.observe(this, {
-            adapter.setNotes(it)
+            adapter.submitList(it);
         })
 
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
@@ -66,7 +65,7 @@ class MainActivity : AppCompatActivity() {
                 intent.putExtra(AddEditNoteActivity.EXTRA_TITLE, note.title)
                 intent.putExtra(AddEditNoteActivity.EXTRA_DESCRIPTION, note.description)
                 intent.putExtra(AddEditNoteActivity.EXTRA_PRIORITY, note.priority)
-                Log.d("MainActivity", "onItemClick: ${note.id} ${note.title} ${note.description} ${note.priority}")
+                Log.d("MainActivity ", "onItemClick: ${note.id} ${note.title} ${note.description} ${note.priority}")
                 startActivityForResult(intent, EDIT_NOTE_REQUEST)
             }
         })

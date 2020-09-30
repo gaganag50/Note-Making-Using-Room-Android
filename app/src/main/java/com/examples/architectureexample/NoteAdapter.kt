@@ -4,14 +4,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 
 
-class NoteAdapter : RecyclerView.Adapter<NoteAdapter.NoteHolder>() {
-    private var notes: List<Note> = ArrayList()
+class NoteAdapter :
+    ListAdapter<Note, NoteAdapter.NoteHolder?>(DIFF_CALLBACK) {
     private var listener: OnItemClickListener? = null
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteHolder {
         val itemView: View = LayoutInflater.from(parent.context)
             .inflate(R.layout.note_item, parent, false)
@@ -19,46 +20,49 @@ class NoteAdapter : RecyclerView.Adapter<NoteAdapter.NoteHolder>() {
     }
 
     override fun onBindViewHolder(holder: NoteHolder, position: Int) {
-        val (title, description, priority) = notes[position]
+        val (title, description, priority) = getItem(position)!!
         holder.textViewTitle.text = title
         holder.textViewDescription.text = description
         holder.textViewPriority.text = priority.toString()
     }
 
-    override fun getItemCount(): Int {
-        return notes.size
+    fun getNoteAt(position: Int): Note {
+        return getItem(position)!!
     }
 
-    fun setNotes(notes: List<Note>) {
-        this.notes = notes
-        notifyDataSetChanged()
-    }
+    inner class NoteHolder(itemView: View) : ViewHolder(itemView) {
+         val textViewTitle: TextView = itemView.findViewById(R.id.text_view_title)
+        val textViewDescription: TextView = itemView.findViewById(R.id.text_view_description)
+        val textViewPriority: TextView = itemView.findViewById(R.id.text_view_priority)
 
-    fun getNoteAt(position: Int): Note? {
-        return notes[position]
+        init {
+            itemView.setOnClickListener {
+                val position = adapterPosition
+                if (listener != null && position != RecyclerView.NO_POSITION) {
+                    listener!!.onItemClick(getItem(position))
+                }
+            }
+        }
     }
 
     interface OnItemClickListener {
         fun onItemClick(note: Note?)
     }
 
-    fun setOnItemClickListener(listener: OnItemClickListener) {
+    fun setOnItemClickListener(listener: OnItemClickListener?) {
         this.listener = listener
     }
 
-    inner class NoteHolder(itemView: View) : ViewHolder(itemView) {
-        val textViewTitle: TextView = itemView.findViewById(R.id.text_view_title)
-        val textViewDescription: TextView = itemView.findViewById(R.id.text_view_description)
-        val textViewPriority: TextView = itemView.findViewById(R.id.text_view_priority)
+    companion object {
+        private val DIFF_CALLBACK: DiffUtil.ItemCallback<Note> =
+            object : DiffUtil.ItemCallback<Note>() {
+                override fun areItemsTheSame(oldItem: Note, newItem: Note): Boolean {
+                    return oldItem.id == newItem.id
+                }
 
-        init {
-
-            itemView.setOnClickListener {
-                val position = adapterPosition
-                if (listener != null && position != RecyclerView.NO_POSITION) {
-                    listener!!.onItemClick(notes[position])
+                override fun areContentsTheSame(oldItem: Note, newItem: Note): Boolean {
+                    return oldItem.title == newItem.title && oldItem.description == newItem.description && oldItem.priority == newItem.priority
                 }
             }
-        }
     }
 }
