@@ -2,6 +2,7 @@ package com.examples.architectureexample
 
 
 import android.content.Intent
+import android.nfc.NfcAdapter
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -11,9 +12,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
 
-class AddNoteActivity : AppCompatActivity() {
-    private var editTextTitle: EditText? = null
-    private var editTextDescription: EditText? = null
+class AddEditNoteActivity : AppCompatActivity() {
+    lateinit var editTextTitle: EditText
+    lateinit var editTextDescription: EditText
     lateinit var numberPickerPriority: NumberPicker
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,12 +25,20 @@ class AddNoteActivity : AppCompatActivity() {
         numberPickerPriority.setMinValue(1)
         numberPickerPriority.setMaxValue(10)
         supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_close)
-        title = "Add Note"
+        val intent = intent
+        if (intent.hasExtra(EXTRA_ID)) {
+            title = "Edit Note"
+            editTextTitle.setText(intent.getStringExtra(EXTRA_TITLE))
+            editTextDescription.setText(intent.getStringExtra(EXTRA_DESCRIPTION))
+            numberPickerPriority.value = intent.getIntExtra(EXTRA_PRIORITY, 1)
+        } else {
+            title = "Add Note"
+        }
     }
 
     private fun saveNote() {
-        val title = editTextTitle!!.text.toString()
-        val description = editTextDescription!!.text.toString()
+        val title = editTextTitle.text.toString()
+        val description = editTextDescription.text.toString()
         val priority = numberPickerPriority.value
         if (title.trim { it <= ' ' }.isEmpty() || description.trim { it <= ' ' }.isEmpty()) {
             Toast.makeText(this, "Please insert a title and description", Toast.LENGTH_SHORT).show()
@@ -39,6 +48,10 @@ class AddNoteActivity : AppCompatActivity() {
         data.putExtra(EXTRA_TITLE, title)
         data.putExtra(EXTRA_DESCRIPTION, description)
         data.putExtra(EXTRA_PRIORITY, priority)
+        val id = intent.getIntExtra(EXTRA_ID, -1)
+        if (id != -1) {
+            data.putExtra(EXTRA_ID, id)
+        }
         setResult(RESULT_OK, data)
         finish()
     }
@@ -50,7 +63,7 @@ class AddNoteActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.getItemId()) {
+        return when (item.itemId) {
             R.id.save_note -> {
                 saveNote()
                 true
@@ -60,6 +73,7 @@ class AddNoteActivity : AppCompatActivity() {
     }
 
     companion object {
+        const val EXTRA_ID = "com.examples.architectureexample.EXTRA_ID"
         const val EXTRA_TITLE = "com.examples.architectureexample.EXTRA_TITLE"
         const val EXTRA_DESCRIPTION = "com.examples.architectureexample.EXTRA_DESCRIPTION"
         const val EXTRA_PRIORITY = "com.examples.architectureexample.EXTRA_PRIORITY"
